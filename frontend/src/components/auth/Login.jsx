@@ -7,8 +7,12 @@ import { Link, Navigate } from "react-router-dom";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-import { USER_API_END_POINT } from "@/utils/constant";
+import { USER_END_POINT } from "../../utils/constant.js";
 import { toast } from "sonner"; // or "react-hot-toast", whichever you use
+import { useDispatch, useSelector } from "react-redux";
+import { setLoading } from "@/redux/authSlice";
+import store from "@/redux/store";
+import { Loader2 } from "lucide-react";
 
 const Login = () => {
   const [input, setInput] = useState({
@@ -16,14 +20,17 @@ const Login = () => {
     password: "",
     role: "",
   });
-
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const loading = useSelector((store) => store.auth.loading);
   const changeEventhandler = (e) => {
     setInput({ ...input, [e.target.name]: e.target.value });
   };
-  const navigate = useNavigate();
+
   const submitHandler = async (e) => {
     e.preventDefault();
     try {
+      dispatch(setLoading(true));
       const res = await axios.post(`${USER_END_POINT}/login`, input, {
         headers: {
           "Content-Type": "application/json",
@@ -37,6 +44,8 @@ const Login = () => {
     } catch (error) {
       console.log(error);
       toast.error(error.response.data.message);
+    } finally {
+      dispatch(setLoading(false));
     }
   };
   return (
@@ -91,10 +100,10 @@ const Login = () => {
               <div className="flex items-center gap-2">
                 <Input
                   type="radio"
-                  value="recuiter"
+                  value="recruiter"
                   name="role"
                   className="cursor-pointer"
-                  checked={input.role == "recuiter"}
+                  checked={input.role == "recruiter"}
                   onChange={changeEventhandler}
                 />
                 <Label htmlFor="r2" className="text-lg">
@@ -105,9 +114,17 @@ const Login = () => {
           </div>
           <Button
             type="submit"
-            className="w-full my-4 py-2 bg-purple-900 hover:bg-purple-950 text-white border border-purple-950 rounded-md"
+            disabled={loading}
+            className="w-full my-4 h-10 bg-purple-900 hover:bg-purple-950 text-white border border-purple-950 rounded-md flex items-center justify-center"
           >
-            Login
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Please Wait
+              </>
+            ) : (
+              "Login"
+            )}
           </Button>
           <span>
             Don't have an account?{" "}

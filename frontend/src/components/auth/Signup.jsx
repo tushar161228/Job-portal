@@ -6,8 +6,11 @@ import { Button, Input } from "@base-ui/react";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Link, Navigate } from "react-router-dom";
 import axios from "axios";
-import { USER_API_END_POINT } from "@/utils/constant";
+import { USER_END_POINT } from "../../utils/constant";
 import { toast } from "sonner";
+import { useDispatch, useSelector } from "react-redux";
+import { setLoading } from "@/redux/authSlice";
+import { Loader2 } from "lucide-react";
 const Signup = () => {
   const [input, setInput] = useState({
     fullname: "",
@@ -17,13 +20,17 @@ const Signup = () => {
     role: "",
     file: "",
   });
+
+  const navigate = useNavigate();
+  const loading=useSelector(store=>store.auth.loading);
+  const dispatch=useDispatch();
   const changeEventhandler = (e) => {
     setInput({ ...input, [e.target.name]: e.target.value });
   };
   const changeFileHandler = (e) => {
     setInput({ ...input, file: e.target.files?.[0] });
   };
-   const navigate = useNavigate();
+
   const submitHandler = async (e) => {
     e.preventDefault();
     const formData = new FormData();
@@ -36,6 +43,7 @@ const Signup = () => {
       formData.append("file", input.file);
     }
     try {
+      dispatch(setLoading(true));
       const res = await axios.post(`${USER_END_POINT}/register`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -43,12 +51,15 @@ const Signup = () => {
         withCredentials: true,
       });
       if (res.data.success) {
-        navigate("/");
+        navigate("/login");
         toast.success(res.data.message);
       }
     } catch (error) {
       console.log(error);
       toast.error(error.response.data.message);
+    }
+    finally{
+      dispatch(setLoading(false));
     }
   };
   return (
@@ -123,10 +134,10 @@ const Signup = () => {
               <div className="flex items-center gap-2">
                 <Input
                   type="radio"
-                  value="recuiter"
+                  value="recruiter"
                   name="role"
                   className="cursor-pointer"
-                  checked={input.role == "recuiter"}
+                  checked={input.role == "recruiter"}
                   onChange={changeEventhandler}
                 />
                 <Label htmlFor="r2" className="text-lg">
@@ -147,9 +158,17 @@ const Signup = () => {
           </div>
           <Button
             type="submit"
-            className="w-full my-4 py-2 bg-purple-900 hover:bg-purple-950 text-white border border-purple-950 rounded-md"
+            disabled={loading}
+            className="w-full my-4 h-10 bg-purple-900 hover:bg-purple-950 text-white border border-purple-950 rounded-md flex items-center justify-center"
           >
-            Signup
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Please Wait
+              </>
+            ) : (
+              "Signup"
+            )}
           </Button>
           <span>
             Already have an account?{" "}
