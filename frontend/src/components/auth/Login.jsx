@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { USER_END_POINT } from "../../utils/constant.js";
 import { toast } from "sonner"; // or "react-hot-toast", whichever you use
 import { useDispatch, useSelector } from "react-redux";
-import { setLoading } from "@/redux/authSlice";
+import { setLoading,setUser } from "@/redux/authSlice";
 import store from "@/redux/store";
 import { Loader2 } from "lucide-react";
 
@@ -37,13 +37,14 @@ const Login = () => {
         },
         withCredentials: true,
       });
-      if (res.data.success) {
+      if (res.data.success){
+        dispatch(setUser(res.data.user));
         navigate("/");
         toast.success(res.data.message);
       }
     } catch (error) {
       console.log(error);
-      toast.error(error.response.data.message);
+      toast.error(error.response.data.message||error.message);
     } finally {
       dispatch(setLoading(false));
     }
