@@ -4,37 +4,84 @@ import bcrypt from "bcryptjs";
 import cloudinary from "../utils/cloudinary.js";
 export const register = async (req, res) => {
   try {
-    const { fullname, email, password, role, phoneNumber } = req.body;
+    const { fullname, email, password, role, phoneNumber } = req.body || {};
+
     if (!fullname || !email || !password || !role || !phoneNumber) {
       return res.status(400).json({
         message: "Something is missing",
         success: false,
       });
     }
-    const user = await User.findOne({ email });
-    if (user) {
+
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
       return res.status(400).json({
-        message: "User already Existed with this Email",
+        message: "User already existed with this email",
         success: false,
       });
     }
+
     const hashedPassword = await bcrypt.hash(password, 10);
-    await User.create({
+
+    let profilePhoto = "";
+
+    // Upload profile photo if provided
+    if (req.file) {
+      console.log("Uploading profile photo:", req.file.originalname);
+
+      const uploadPhoto = () => {
+        return new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            {
+              folder: "job-portal/profile-photos",
+              resource_type: "image",
+            },
+            (error, result) => {
+              if (error) {
+                reject(error);
+              } else {
+                resolve(result);
+              }
+            },
+          );
+
+          stream.end(req.file.buffer);
+        });
+      };
+
+      const result = await uploadPhoto();
+
+      profilePhoto = result.secure_url;
+
+      console.log("Profile photo uploaded:", profilePhoto);
+    }
+
+    const user = await User.create({
       fullname,
       email,
       password: hashedPassword,
       role,
       phoneNumber,
+      profile: {
+        profilePhoto,
+      },
     });
+
     return res.status(201).json({
       message: "Account Created Successfully",
       success: true,
     });
   } catch (error) {
-    console.log(error);
+    console.log("REGISTER ERROR:", error);
+
+    return res.status(500).json({
+      message: "Internal server error",
+      success: false,
+      error: error.message,
+    });
   }
 };
-
 export const login = async (req, res) => {
   try {
     const { email, password, role } = req.body;
