@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import cloudinary from "../utils/cloudinary.js";
 export const register = async (req, res) => {
   try {
     const { fullname, email, password, role, phoneNumber } = req.body;
@@ -111,38 +112,105 @@ export const logout = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
+    console.log("========== UPDATE PROFILE ==========");
+    console.log("USER ID:", req.id);
+    console.log("BODY:", req.body);
+    console.log("FILE:", req.file);
+
     const { fullname, email, phoneNumber, bio, skills } = req.body;
 
     const userId = req.id;
 
-    console.log("USER ID:", userId);
-    console.log("BODY:", req.body);
+    if (!userId) {
+      return res.status(401).json({
+        message: "User not authenticated",
+        success: false,
+      });
+    }
 
-    let user = await User.findById(userId);
+    const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(400).json({
+      return res.status(404).json({
         message: "User not found",
         success: false,
       });
     }
 
-    // Update basic details
-    if (fullname) user.fullname = fullname;
-    if (email) user.email = email;
-    if (phoneNumber) user.phoneNumber = phoneNumber;
-    if (bio) user.profile.bio = bio;
+    // Make sure profile exists
+    if (!user.profile) {
+      user.profile = {};
+    }
+
+    // Update basic information
+    if (fullname !== undefined) {
+      user.fullname = fullname;
+    }
+
+    if (email !== undefined) {
+      user.email = email;
+    }
+
+    if (phoneNumber !== undefined) {
+      user.phoneNumber = phoneNumber;
+    }
+
+    // Update bio
+    if (bio !== undefined) {
+      user.profile.bio = bio;
+    }
 
     // Update skills
-    if (skills) {
+    if (skills !== undefined) {
       user.profile.skills = skills
         .split(",")
         .map((skill) => skill.trim())
-        .filter((skill) => skill !== "");
+        .filter((skill) => skill.length > 0);
     }
 
+    // ==============================
+    // RESUME UPLOAD
+    // ==============================
+
+    if (req.file) {
+      console.log("Uploading resume:", req.file.originalname);
+
+      const uploadResume = () => {
+        return new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            {
+              folder: "job-portal/resumes",
+              resource_type: "raw",
+              public_id: `${userId}_${Date.now()}`,
+            },
+            (error, result) => {
+              if (error) {
+                reject(error);
+              } else {
+                resolve(result);
+              }
+            },
+          );
+
+          stream.end(req.file.buffer);
+        });
+      };
+
+      const result = await uploadResume();
+
+      console.log("Resume uploaded:", result.secure_url);
+
+      // Save Cloudinary URL in MongoDB
+      user.profile.resume = result.secure_url;
+
+      // Save original filename if your schema supports it
+      user.profile.resumeOriginalName = req.file.originalname;
+    }
+
+    // Save user
     await user.save();
 
+    // Return updated user
     const updatedUser = {
       _id: user._id,
       fullname: user.fullname,
