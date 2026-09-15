@@ -1,17 +1,20 @@
-import * as React from "react"
-import { Popover as PopoverPrimitive } from "@base-ui/react/popover"
-import { cn } from "cn"
+import * as React from "react";
 
-function Popover({
-  ...props
-}) {
-  return <PopoverPrimitive.Root data-slot="popover" {...props} />
+import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
+
+import { cn } from "cn";
+
+function Popover({ ...props }) {
+  return <PopoverPrimitive.Root data-slot="popover" {...props} />;
 }
 
-function PopoverTrigger({
-  ...props
-}) {
-  return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />
+function PopoverTrigger({ asChild, ...props }) {
+  return (
+    <PopoverPrimitive.Trigger
+      data-slot="popover-trigger"
+      {...props}
+    />
+  );
 }
 
 function PopoverContent({
@@ -41,7 +44,7 @@ function PopoverContent({
         />
       </PopoverPrimitive.Positioner>
     </PopoverPrimitive.Portal>
-  )
+  );
 }
 
 function PopoverHeader({
@@ -54,7 +57,7 @@ function PopoverHeader({
       className={cn("flex flex-col gap-0.5 text-sm", className)}
       {...props}
     />
-  )
+  );
 }
 
 function PopoverTitle({
@@ -67,7 +70,7 @@ function PopoverTitle({
       className={cn("font-medium", className)}
       {...props}
     />
-  )
+  );
 }
 
 function PopoverDescription({
@@ -80,7 +83,7 @@ function PopoverDescription({
       className={cn("text-muted-foreground", className)}
       {...props}
     />
-  )
+  );
 }
 
 export {
@@ -90,4 +93,4 @@ export {
   PopoverHeader,
   PopoverTitle,
   PopoverTrigger,
-}
+};
