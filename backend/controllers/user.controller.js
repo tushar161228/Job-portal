@@ -85,7 +85,7 @@ export const login = async (req, res) => {
       .status(200)
       .cookie("token", token, {
         maxAge: 1 * 24 * 60 * 60 * 1000,
-        httpsOnly: true,
+        httpOnly: true,
         sameSite: "strict",
       })
       .json({
@@ -112,30 +112,38 @@ export const logout = async (req, res) => {
 export const updateProfile = async (req, res) => {
   try {
     const { fullname, email, phoneNumber, bio, skills } = req.body;
-    const file = req.file;
-    // cloundinary...
-    let skillsArray;
-    if(skills){
-        skillsArray = skills.split(",");
-    }
+
     const userId = req.id;
-    let user = await User.findOnebyId(userId);
+
+    console.log("USER ID:", userId);
+    console.log("BODY:", req.body);
+
+    let user = await User.findById(userId);
+
     if (!user) {
       return res.status(400).json({
-        message: "user not found",
+        message: "User not found",
         success: false,
       });
     }
-      if(fullname) user.fullname=fullname;
-      if(email) user.email=email;
-      if(phoneNumber) user.phoneNumber=phoneNumber;
-      if(bio) user.profile.bio= bio;
-      if(skills) user.profile.skills=skillsArray;
 
-    //resume section...
+    // Update basic details
+    if (fullname) user.fullname = fullname;
+    if (email) user.email = email;
+    if (phoneNumber) user.phoneNumber = phoneNumber;
+    if (bio) user.profile.bio = bio;
+
+    // Update skills
+    if (skills) {
+      user.profile.skills = skills
+        .split(",")
+        .map((skill) => skill.trim())
+        .filter((skill) => skill !== "");
+    }
 
     await user.save();
-    user = {
+
+    const updatedUser = {
       _id: user._id,
       fullname: user.fullname,
       email: user.email,
@@ -146,10 +154,16 @@ export const updateProfile = async (req, res) => {
 
     return res.status(200).json({
       message: "Profile updated successfully",
-      user,
+      user: updatedUser,
       success: true,
     });
   } catch (error) {
-    console.log(error);
+    console.log("UPDATE PROFILE ERROR:", error);
+
+    return res.status(500).json({
+      message: "Internal server error",
+      success: false,
+      error: error.message,
+    });
   }
 };
