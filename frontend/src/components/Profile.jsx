@@ -66,7 +66,7 @@ const Profile = () => {
             <a
               target="_blank"
               rel="noopener noreferrer"
-              href={user.profile.resume}
+              href={user?.profile?.resume}
               className="text-blue-500 w-full hover:underline cursor-pointer"
             >
               {user?.profile?.resumeOriginalName || "View Resume"}
