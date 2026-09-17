@@ -8,6 +8,7 @@ import companyRoute from "./routes/company.route.js";
 import jobRoute from "./routes/job.route.js";
 import applicationRoute from "./routes/application.route.js";
 dotenv.config({});
+console.log("SECRET_KEY CHECK:", process.env.SECRET_KEY);
 
 const app = express();
 //middleware...
