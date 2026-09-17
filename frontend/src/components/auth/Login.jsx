@@ -3,7 +3,7 @@ import Navbar from "../ui/shared/Navbar";
 import { Label } from "../ui/label";
 import { Button, Input } from "@base-ui/react";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import { Link, Navigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -11,7 +11,6 @@ import { USER_END_POINT } from "../../utils/constant.js";
 import { toast } from "sonner"; // or "react-hot-toast", whichever you use
 import { useDispatch, useSelector } from "react-redux";
 import { setLoading,setUser } from "@/redux/authSlice";
-import store from "@/redux/store";
 import { Loader2 } from "lucide-react";
 
 const Login = () => {

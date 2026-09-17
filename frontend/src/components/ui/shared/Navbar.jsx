@@ -117,10 +117,9 @@ const Navbar = () => {
                   {/* Profile */}
                   <div className="flex items-center gap-2 text-gray-600">
                     <UserRound size={18} />
-
-                    <Button variant="link" asChild>
-                      <Link to="/profile">View Profile</Link>
-                    </Button>
+                    <Link to="/profile">
+                      <Button variant="link">View Profile</Button>
+                    </Link>
                   </div>
 
                   {/* Logout */}
